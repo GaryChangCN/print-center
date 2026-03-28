@@ -119,7 +119,22 @@ function parseIPPAttributes(buf: Buffer): Record<string, unknown>[] {
     i += valLen
 
     if (name) {
-      current[name] = value
+      // 新属性
+      if (name in current) {
+        // 已有同名属性，转为数组
+        const existing = current[name]
+        current[name] = Array.isArray(existing) ? [...existing, value] : [existing, value]
+      } else {
+        current[name] = value
+      }
+    } else {
+      // nameLen === 0 表示追加值到上一个属性（IPP 多值属性）
+      const keys = Object.keys(current)
+      if (keys.length > 0) {
+        const lastKey = keys[keys.length - 1]
+        const existing = current[lastKey]
+        current[lastKey] = Array.isArray(existing) ? [...existing, value] : [existing, value]
+      }
     }
   }
   if (Object.keys(current).length > 0) groups.push(current)
@@ -150,7 +165,19 @@ const JOB_STATE_MAP: Record<number, string> = {
 app.get('/', async (c) => {
   if (config.mockMode) {
     return c.json({
-      printer: { name: config.printerName, state: 'idle', stateMessage: '就绪', connected: true },
+      printer: {
+        name: config.printerName,
+        state: 'idle',
+        stateMessage: '就绪',
+        connected: true,
+        markers: [
+          { name: 'Toner', level: 72, type: 'toner', color: '#000000' },
+          { name: 'Drum', level: 85, type: 'opc', color: '#333333' },
+        ],
+        mediaReady: ['iso_a4_210x297mm'],
+        totalPages: 1234,
+        deviceUri: 'usb://Brother/DCP-1618W',
+      },
       scanner: { status: 'ready', connected: true },
       mockMode: true,
     })
@@ -165,6 +192,8 @@ app.get('/', async (c) => {
         'printer-state', 'printer-state-message', 'printer-state-reasons',
         'printer-name', 'printer-info', 'printer-make-and-model',
         'printer-is-accepting-jobs', 'queued-job-count',
+        'marker-names', 'marker-levels', 'marker-types', 'marker-colors',
+        'media-ready', 'printer-impressions-completed', 'device-uri',
       ]
       for (const attr of attrs) {
         writeAttr(parts, VALUE_KEYWORD, 'requested-attributes', strVal(attr))
@@ -185,6 +214,28 @@ app.get('/', async (c) => {
     const accepting = printerAttrs['printer-is-accepting-jobs'] as boolean ?? true
     const queuedCount = (printerAttrs['queued-job-count'] as number) ?? 0
 
+    // 耗材信息
+    const markerNames = printerAttrs['marker-names']
+    const markerLevels = printerAttrs['marker-levels']
+    const markerTypes = printerAttrs['marker-types']
+    const markerColors = printerAttrs['marker-colors']
+    const toArr = (v: unknown): unknown[] => v == null ? [] : Array.isArray(v) ? v : [v]
+    const names = toArr(markerNames)
+    const levels = toArr(markerLevels)
+    const types = toArr(markerTypes)
+    const colors = toArr(markerColors)
+    const markers = names.map((n, i) => ({
+      name: n as string,
+      level: (levels[i] as number) ?? -1,
+      type: (types[i] as string) ?? '',
+      color: (colors[i] as string) ?? '',
+    }))
+
+    // 纸盒 & 计数
+    const mediaReady = printerAttrs['media-ready']
+    const totalPages = (printerAttrs['printer-impressions-completed'] as number) ?? null
+    const deviceUri = (printerAttrs['device-uri'] as string) ?? ''
+
     return c.json({
       printer: {
         name: config.printerName,
@@ -195,6 +246,10 @@ app.get('/', async (c) => {
         accepting,
         queuedCount,
         connected: statusCode <= 0x00ff,
+        markers,
+        mediaReady: mediaReady ? toArr(mediaReady) : [],
+        totalPages,
+        deviceUri,
       },
       scanner: { status: 'ready', connected: true },
       mockMode: false,

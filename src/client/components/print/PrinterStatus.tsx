@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import { Wifi, WifiOff, RefreshCw, ChevronDown, ChevronUp, Printer, Clock, FileText, User } from 'lucide-react'
 
+interface MarkerInfo {
+  name: string
+  level: number
+  type: string
+  color: string
+}
+
 interface PrinterInfo {
   name: string
   model?: string
@@ -10,6 +17,10 @@ interface PrinterInfo {
   accepting?: boolean
   queuedCount?: number
   connected: boolean
+  markers?: MarkerInfo[]
+  mediaReady?: string[]
+  totalPages?: number | null
+  deviceUri?: string
 }
 
 interface CupsJob {
@@ -66,6 +77,33 @@ const jobStateColors: Record<string, string> = {
   canceled: 'bg-gray-100 text-gray-600',
   aborted: 'bg-red-100 text-red-700',
   stopped: 'bg-amber-100 text-amber-700',
+}
+
+const markerNameMap: Record<string, string> = {
+  toner: '墨粉',
+  drum: '硒鼓',
+  opc: '感光鼓',
+  'waste toner': '废粉盒',
+  fuser: '定影器',
+}
+
+function formatMarkerName(name: string): string {
+  const lower = name.toLowerCase()
+  for (const [key, label] of Object.entries(markerNameMap)) {
+    if (lower.includes(key)) return label
+  }
+  return name
+}
+
+const mediaMap: Record<string, string> = {
+  'iso_a4_210x297mm': 'A4',
+  'na_letter_8.5x11in': 'Letter',
+  'iso_a3_297x420mm': 'A3',
+  'jis_b5_182x257mm': 'B5',
+}
+
+function formatMedia(media: string): string {
+  return mediaMap[media] || media.replace(/^(iso|na|jis)_/, '').replace(/_/g, ' ')
 }
 
 function formatTime(ts: number): string {
@@ -175,9 +213,48 @@ export function PrinterStatus() {
         </button>
       </div>
 
-      {/* 展开的队列列表 */}
+      {/* 展开的详情 */}
       {showQueue && (
         <div className="border-t border-paper-200">
+          {/* 耗材信息 */}
+          {printer.markers && printer.markers.length > 0 && (
+            <div className="px-4 py-3 space-y-2 border-b border-paper-100">
+              {printer.markers.map((m, i) => (
+                <div key={i} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-ink-600">{formatMarkerName(m.name)}</span>
+                    <span className={`font-medium ${m.level <= 10 ? 'text-red-500' : m.level <= 30 ? 'text-amber-500' : 'text-ink-500'}`}>
+                      {m.level < 0 ? '未知' : `${m.level}%`}
+                    </span>
+                  </div>
+                  {m.level >= 0 && (
+                    <div className="w-full h-1.5 bg-paper-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${
+                          m.level <= 10 ? 'bg-red-500' : m.level <= 30 ? 'bg-amber-400' : 'bg-green-500'
+                        }`}
+                        style={{ width: `${m.level}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 设备信息 */}
+          <div className="px-4 py-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-400 border-b border-paper-100">
+            {printer.mediaReady && printer.mediaReady.length > 0 && (
+              <span>纸盒: {printer.mediaReady.map(formatMedia).join(', ')}</span>
+            )}
+            {printer.totalPages != null && (
+              <span>累计: {printer.totalPages} 页</span>
+            )}
+            {printer.deviceUri && (
+              <span>连接: {printer.deviceUri.startsWith('usb://') ? 'USB' : printer.deviceUri}</span>
+            )}
+          </div>
+
           {/* Tab 切换 */}
           <div className="flex border-b border-paper-100">
             <button

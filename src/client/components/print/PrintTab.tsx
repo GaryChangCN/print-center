@@ -7,6 +7,7 @@ import { PrinterStatus } from './PrinterStatus'
 import { StatusBadge } from '../shared/StatusBadge'
 import type { PrintOptions as PrintOptionsType } from '../../lib/types'
 import { uploadFile, submitPrint, getPrintStatus } from '../../lib/api'
+import { PdfPreview } from '../shared/PdfPreview'
 
 export function PrintTab() {
   const [file, setFile] = useState<File | null>(null)
@@ -94,6 +95,17 @@ export function PrintTab() {
 
       {file && (
         <>
+          {file.type === 'application/pdf' && <PdfPreview file={file} />}
+          {file.type.startsWith('image/') && (
+            <div className="card overflow-auto max-h-[60vh] bg-paper-100 rounded-lg flex justify-center p-2">
+              <img
+                src={URL.createObjectURL(file)}
+                alt="预览"
+                className="max-w-full shadow-sm"
+              />
+            </div>
+          )}
+
           <PrintOptions options={options} onChange={setOptions} />
 
           <button
