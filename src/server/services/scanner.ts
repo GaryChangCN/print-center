@@ -13,8 +13,8 @@ import os from 'os'
 /** ARM 上通过 QEMU 运行 x86_64 的 scanimage */
 const IS_ARM = os.arch() === 'arm64' || os.arch() === 'aarch64'
 const QEMU_PREFIX = IS_ARM ? 'qemu-x86_64-static ' : ''
-const SCANIMAGE = `${QEMU_PREFIX}scanimage`
-const BRSANECONFIG = `${QEMU_PREFIX}brsaneconfig4`
+const SCANIMAGE = IS_ARM ? 'qemu-x86_64-static /usr/bin/scanimage' : 'scanimage'
+const BRSANECONFIG = IS_ARM ? 'qemu-x86_64-static /usr/bin/brsaneconfig4' : 'brsaneconfig4'
 
 /** 查询扫描设备是否正在工作（包括被打印占用） */
 export function isScannerBusy(): boolean {
