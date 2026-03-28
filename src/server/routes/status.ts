@@ -37,6 +37,24 @@ function writeAttr(parts: Buffer[], tag: number, name: string, value: Buffer) {
   parts.push(buf)
 }
 
+/** 写多值属性：第一个值带 name，后续值 nameLen=0（IPP 追加语义） */
+function writeMultiAttr(parts: Buffer[], tag: number, name: string, values: Buffer[]) {
+  values.forEach((val, idx) => {
+    if (idx === 0) {
+      writeAttr(parts, tag, name, val)
+    } else {
+      // nameLen = 0 表示追加到前一个属性
+      const buf = Buffer.alloc(1 + 2 + 0 + 2 + val.length)
+      let o = 0
+      buf.writeUInt8(tag, o++)
+      buf.writeUInt16BE(0, o); o += 2
+      buf.writeUInt16BE(val.length, o)
+      val.copy(buf, o + 2)
+      parts.push(buf)
+    }
+  })
+}
+
 function strVal(s: string) { return Buffer.from(s, 'utf-8') }
 
 function buildIPPRequest(operation: number, printerUri: string, extraAttrs?: (parts: Buffer[]) => void): Buffer {
@@ -187,7 +205,7 @@ app.get('/', async (c) => {
 
   try {
     const req = buildIPPRequest(GET_PRINTER_ATTRIBUTES, printerUri, (parts) => {
-      // 请求的属性
+      // 请求的属性（使用多值写法）
       const attrs = [
         'printer-state', 'printer-state-message', 'printer-state-reasons',
         'printer-name', 'printer-info', 'printer-make-and-model',
@@ -195,9 +213,7 @@ app.get('/', async (c) => {
         'marker-names', 'marker-levels', 'marker-types', 'marker-colors',
         'media-ready', 'printer-impressions-completed', 'device-uri',
       ]
-      for (const attr of attrs) {
-        writeAttr(parts, VALUE_KEYWORD, 'requested-attributes', strVal(attr))
-      }
+      writeMultiAttr(parts, VALUE_KEYWORD, 'requested-attributes', attrs.map(a => strVal(a)))
     })
 
     const resp = await sendIPPRequest(printerUri, req)
@@ -290,9 +306,7 @@ app.get('/jobs', async (c) => {
         'job-originating-user-name', 'job-k-octets',
         'time-at-creation', 'time-at-processing', 'time-at-completed',
       ]
-      for (const attr of attrs) {
-        writeAttr(parts, VALUE_KEYWORD, 'requested-attributes', strVal(attr))
-      }
+      writeMultiAttr(parts, VALUE_KEYWORD, 'requested-attributes', attrs.map(a => strVal(a)))
     })
 
     const resp = await sendIPPRequest(printerUri, req)
