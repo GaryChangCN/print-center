@@ -8,6 +8,14 @@ import { acquireUSBLock, releaseUSBLock, isUSBBusy } from './usb-lock'
 const execAsync = promisify(exec)
 const execFileAsync = promisify(execFile)
 
+import os from 'os'
+
+/** ARM 上通过 QEMU 运行 x86_64 的 scanimage */
+const IS_ARM = os.arch() === 'arm64' || os.arch() === 'aarch64'
+const QEMU_PREFIX = IS_ARM ? 'qemu-x86_64-static ' : ''
+const SCANIMAGE = `${QEMU_PREFIX}scanimage`
+const BRSANECONFIG = `${QEMU_PREFIX}brsaneconfig4`
+
 /** 查询扫描设备是否正在工作（包括被打印占用） */
 export function isScannerBusy(): boolean {
   return isUSBBusy().busy
@@ -31,7 +39,7 @@ export interface ScanOptions {
 /** 自动检测 SANE 设备名（Brother brscan4） */
 async function detectDevice(): Promise<string | null> {
   try {
-    const { stdout } = await execAsync('scanimage -L 2>/dev/null', { timeout: 10000 })
+    const { stdout } = await execAsync(`${SCANIMAGE} -L 2>/dev/null`, { timeout: 15000 })
     // 优先找 brother4 设备
     const brotherMatch = stdout.match(/device `(brother4:[^']+)'/i)
     if (brotherMatch) return brotherMatch[1]
@@ -58,7 +66,7 @@ export async function scanOnce(options: ScanOptions = {}): Promise<Buffer> {
     const deviceArg = device ? `--device-name="${device}"` : ''
 
     const cmd = [
-      'scanimage',
+      SCANIMAGE,
       deviceArg,
       `--resolution=${dpi}`,
       `--mode=${mode}`,

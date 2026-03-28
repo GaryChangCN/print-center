@@ -63,22 +63,25 @@ if [ "$ARCH" = "x86_64" ]; then
     echo "[scan] WARNING: brsaneconfig4 not found"
   fi
 else
-  # ARM: brscan4 不可用，尝试 ipp-usb + sane-airscan
-  echo "[scan] ARM detected, brscan4 unavailable"
-  if command -v ipp-usb &>/dev/null; then
-    echo "[scan] starting ipp-usb..."
-    ipp-usb udev 2>/dev/null || true
-    sleep 2
-    # 检测扫描设备
-    SCANNER=$(scanimage -L 2>/dev/null | head -1 || true)
+  # ARM: 通过 QEMU 运行 x86_64 的 brscan4
+  echo "[scan] ARM detected, using QEMU for brscan4..."
+  if command -v qemu-x86_64-static &>/dev/null; then
+    # 注册 brscan4 扫描仪
+    if ! qemu-x86_64-static /usr/bin/brsaneconfig4 -q 2>/dev/null | grep -qi "DCP"; then
+      qemu-x86_64-static /usr/bin/brsaneconfig4 -a name=DCP-1618W model=DCP-1618W 2>/dev/null || true
+      echo "[scan] scanner registered via brscan4 (QEMU)"
+    else
+      echo "[scan] scanner already registered"
+    fi
+    # 验证扫描设备
+    SCANNER=$(qemu-x86_64-static /usr/bin/scanimage -L 2>/dev/null | head -1 || true)
     if [ -n "$SCANNER" ]; then
       echo "[scan] scanner found: $SCANNER"
     else
-      echo "[scan] WARNING: no scanner detected (DCP-1618W may not support eSCL)"
-      echo "[scan] scanning feature will be unavailable on ARM"
+      echo "[scan] WARNING: scanner not detected, will retry on first scan request"
     fi
   else
-    echo "[scan] WARNING: ipp-usb not installed, scanning unavailable"
+    echo "[scan] WARNING: qemu-user-static not installed, scanning unavailable on ARM"
   fi
 fi
 

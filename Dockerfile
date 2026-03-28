@@ -55,8 +55,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && rm -rf /var/lib/apt/lists/*
 
 # ---------- Brother brscan4 SANE 后端 ----------
-# 注：brscan4 仅提供 amd64/i386 官方包
-# ARM 平台（NAS）如无法安装，扫描功能改用 SANE 通用后端
+# brscan4 仅提供 x86_64 二进制
+# AMD64: 直接安装
+# ARM64: 通过 qemu-user-static 运行 x86_64 的 scanimage + brscan4
 ARG TARGETARCH
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
       wget -q -O /tmp/brscan4.deb \
@@ -64,7 +65,21 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
       && dpkg -i /tmp/brscan4.deb \
       && rm /tmp/brscan4.deb; \
     else \
-      echo "Non-amd64 arch, skipping brscan4"; \
+      echo "ARM detected, installing qemu-user-static + x86_64 brscan4..." \
+      && apt-get update \
+      && apt-get install -y --no-install-recommends qemu-user-static \
+      && dpkg --add-architecture amd64 \
+      && apt-get update \
+      && apt-get install -y --no-install-recommends \
+           libsane1:amd64 \
+           sane-utils:amd64 \
+           libusb-1.0-0:amd64 \
+      && wget -q -O /tmp/brscan4.deb \
+           "https://download.brother.com/welcome/dlf105200/brscan4-0.4.11-1.amd64.deb" \
+      && dpkg --force-architecture -i /tmp/brscan4.deb \
+      && rm /tmp/brscan4.deb \
+      && rm -rf /var/lib/apt/lists/* \
+      && echo "brscan4 (x86_64 via QEMU) installed"; \
     fi
 
 # ---------- CUPS 权限 ----------
