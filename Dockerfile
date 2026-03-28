@@ -1,6 +1,7 @@
 # ╔══════════════════════════════════════════════════════════════╗
 # ║  打印中心 - 全合一镜像                                      ║
-# ║  包含: CUPS (打印) + SANE/brscan4 (扫描) + Node.js (Web)    ║
+# ║  包含: CUPS (打印) + SANE (扫描) + Node.js (Web)            ║
+# ║  ARM: ipp-usb + sane-airscan 替代 brscan4                  ║
 # ║  USB 只透传一次，CUPS 和 SANE 在容器内共享，不冲突          ║
 # ╚══════════════════════════════════════════════════════════════╝
 
@@ -30,6 +31,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sane \
     sane-utils \
     libsane \
+    # ipp-usb + sane-airscan：ARM 上替代 brscan4 的扫描方案
+    ipp-usb \
+    sane-airscan \
     # USB 工具
     usbutils \
     libusb-1.0-0 \

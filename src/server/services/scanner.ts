@@ -3,47 +3,14 @@ import { promisify } from 'util'
 import fs from 'fs'
 import path from 'path'
 import { v4 as uuid } from 'uuid'
+import { acquireUSBLock, releaseUSBLock, isUSBBusy } from './usb-lock'
 
 const execAsync = promisify(exec)
 const execFileAsync = promisify(execFile)
 
-// ─── 扫描设备互斥锁 ───
-// 物理扫描仪同一时间只能执行一个扫描任务
-let scanLock: Promise<void> | null = null
-let scanLockResolve: (() => void) | null = null
-
-function acquireScanLock(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (!scanLock) {
-      // 没有人在扫描，直接获取锁
-      scanLock = new Promise((r) => { scanLockResolve = r })
-      resolve()
-    } else {
-      // 有人在扫描，等它完成后再获取
-      const waitTimeout = setTimeout(() => {
-        reject(new Error('扫描设备繁忙，请稍后再试'))
-      }, 70000) // 最多等 70 秒（比扫描超时 60 秒多一点）
-
-      scanLock.then(() => {
-        clearTimeout(waitTimeout)
-        scanLock = new Promise((r) => { scanLockResolve = r })
-        resolve()
-      })
-    }
-  })
-}
-
-function releaseScanLock() {
-  if (scanLockResolve) {
-    scanLockResolve()
-    scanLock = null
-    scanLockResolve = null
-  }
-}
-
-/** 查询扫描设备是否正在工作 */
+/** 查询扫描设备是否正在工作（包括被打印占用） */
 export function isScannerBusy(): boolean {
-  return scanLock !== null
+  return isUSBBusy().busy
 }
 
 // A4/A5/Letter 尺寸（mm），SANE 需要用 mm
@@ -78,7 +45,7 @@ async function detectDevice(): Promise<string | null> {
 
 /** 执行一次扫描，返回图片 Buffer（自动获取/释放设备锁） */
 export async function scanOnce(options: ScanOptions = {}): Promise<Buffer> {
-  await acquireScanLock()
+  await acquireUSBLock('scan')
 
   const dpi = options.dpi ?? 300
   const mode = options.colorMode === 'color' ? 'Color' : 'Gray'
@@ -114,7 +81,7 @@ export async function scanOnce(options: ScanOptions = {}): Promise<Buffer> {
     if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile)
     throw err
   } finally {
-    releaseScanLock()
+    releaseUSBLock()
   }
 }
 

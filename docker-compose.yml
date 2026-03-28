@@ -1,7 +1,6 @@
 services:
   print-center:
-    build: .
-    image: print-center:latest
+    image: ghcr.io/garychangcn/print-center:latest
     container_name: print-center
     restart: unless-stopped
 

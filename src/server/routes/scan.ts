@@ -6,13 +6,16 @@ import { getDb } from '../db'
 import { v4 as uuid } from 'uuid'
 import { mockStartScan, mockMergeScanPages, mockIdCardScan } from '../services/mock/mock-scanner'
 import { scanOnce, composeIdCard, isScannerBusy } from '../services/scanner'
+import { isUSBBusy } from '../services/usb-lock'
 import fs from 'fs'
 
 const app = new Hono()
 
 // GET /api/scan/status — 扫描设备状态
 app.get('/status', (c) => {
-  return c.json({ busy: config.mockMode ? false : isScannerBusy() })
+  if (config.mockMode) return c.json({ busy: false, holder: null })
+  const { busy, holder } = isUSBBusy()
+  return c.json({ busy, holder })
 })
 
 // POST /api/scan/start — 开始扫描一页
@@ -24,9 +27,11 @@ app.post('/start', async (c) => {
     return c.json(await mockStartScan({ dpi, colorMode, paperSize, format }))
   }
 
-  // 检查扫描设备是否繁忙
-  if (isScannerBusy()) {
-    return c.json({ error: '扫描设备正忙，请稍后再试' }, 429)
+  // 检查 USB 设备是否繁忙（可能被打印或扫描占用）
+  const usbStatus = isUSBBusy()
+  if (usbStatus.busy) {
+    const msg = usbStatus.holder === 'print' ? 'USB 设备正在打印，请等待打印完成后再扫描' : '扫描设备正忙，请稍后再试'
+    return c.json({ error: msg }, 429)
   }
 
   const db = getDb()
@@ -124,8 +129,10 @@ app.post('/idcard', async (c) => {
     return c.json(await mockIdCardScan(side))
   }
 
-  if (isScannerBusy()) {
-    return c.json({ error: '扫描设备正忙，请稍后再试' }, 429)
+  const usbStatus2 = isUSBBusy()
+  if (usbStatus2.busy) {
+    const msg = usbStatus2.holder === 'print' ? 'USB 设备正在打印，请等待打印完成后再扫描' : '扫描设备正忙，请稍后再试'
+    return c.json({ error: msg }, 429)
   }
 
   const db = getDb()

@@ -5,6 +5,7 @@ import { config } from '../env'
 import { getDb } from '../db'
 import { v4 as uuid } from 'uuid'
 import { getFilePath } from './file-store'
+import { acquireUSBLock, releaseUSBLock } from './usb-lock'
 
 export interface PrintJobOptions {
   copies?: number
@@ -51,6 +52,9 @@ async function submitViaIPP(
   db: ReturnType<typeof getDb>
 ) {
   try {
+    // 获取 USB 设备锁，防止与扫描冲突
+    await acquireUSBLock('print')
+
     db.prepare(
       `UPDATE print_jobs SET status = 'printing', updated_at = datetime('now') WHERE id = ?`
     ).run(jobId)
@@ -75,6 +79,8 @@ async function submitViaIPP(
     db.prepare(
       `UPDATE print_jobs SET status = 'failed', error_message = ?, updated_at = datetime('now') WHERE id = ?`
     ).run(msg, jobId)
+  } finally {
+    releaseUSBLock()
   }
 }
 
