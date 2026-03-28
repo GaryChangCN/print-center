@@ -1,0 +1,31 @@
+# 依赖和构建
+node_modules/
+dist/
+
+# 运行时数据（数据库、上传文件、扫描文件）
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# 环境变量（可能含 NAS 地址等私有信息）
+.env
+.env.local
+.env.production
+
+# Docker 构建产物
+print-center.tar
+
+# 系统文件
+.DS_Store
+Thumbs.db
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+deploy.sh

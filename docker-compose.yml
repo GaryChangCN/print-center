@@ -1,0 +1,41 @@
+services:
+  print-center:
+    build: .
+    image: print-center:latest
+    container_name: print-center
+    restart: unless-stopped
+
+    ports:
+      - "3100:3000"       # Web 管理界面
+
+    volumes:
+      - /volume1/docker/print-center/data:/app/data   # 持久化：数据库、上传文件、扫描文件
+      - /volume1/docker/print-center/cups:/etc/cups   # CUPS 配置（持久化，不随部署覆盖）
+
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATA_DIR=/app/data
+      - CUPS_SERVER=http://localhost:631   # 容器内 CUPS，不用远程
+      - PRINTER_NAME=Brother_DCP-1618W
+      - MOCK_MODE=false
+      - HISTORY_RETENTION_DAYS=30
+      - MAX_FILE_SIZE=50
+
+    # ── USB 设备透传（关键！只透传一次）──────────────────────
+    # Brother DCP-1618W 的 USB 总线路径，在 NAS 上用以下命令查找：
+    #   lsusb | grep -i brother
+    #   → Bus 003 Device 002: ID 04f9:0398 Brother Industries, Ltd DCP-1618W
+    # 对应路径就是 /dev/bus/usb/003/002
+    #
+    # 取消注释并按实际路径修改：
+    devices:
+      - /dev/bus/usb/003:/dev/bus/usb/003  # Brother DCP-1618W 所在 USB 总线
+
+    # 需要 privileged 才能访问 USB 和操作 CUPS
+    privileged: true
+
+    # 让容器可访问宿主机服务（如有需要）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+

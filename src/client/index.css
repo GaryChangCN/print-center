@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-paper-50 text-ink-800 font-sans antialiased;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium
+           transition-all duration-200 active:scale-[0.97] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent/90 shadow-sm;
+  }
+  .btn-secondary {
+    @apply btn bg-paper-200 text-ink-700 hover:bg-paper-300;
+  }
+  .btn-ghost {
+    @apply btn text-ink-600 hover:bg-paper-200;
+  }
+  .btn-danger {
+    @apply btn bg-red-500 text-white hover:bg-red-600;
+  }
+  .btn-icon {
+    @apply p-2.5 rounded-lg transition-colors hover:bg-paper-200 active:scale-95;
+  }
+  .card {
+    @apply bg-white rounded-xl shadow-sm border border-paper-200 p-4;
+  }
+  .input {
+    @apply w-full px-3 py-2 rounded-lg border border-paper-300 bg-white
+           text-ink-800 placeholder:text-ink-400
+           focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent
+           transition-colors;
+  }
+  .select {
+    @apply w-full px-3 py-2 rounded-lg border border-paper-300 bg-white
+           text-ink-800 placeholder:text-ink-400
+           focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent
+           transition-colors appearance-none pr-10;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-size: 1rem;
+    background-repeat: no-repeat;
+  }
+  .label {
+    @apply block text-sm font-medium text-ink-600 mb-1.5;
+  }
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-paper-300 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-paper-400;
+}
