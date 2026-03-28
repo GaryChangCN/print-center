@@ -54,14 +54,14 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # ---------- Brother brscan4 SANE 后端 ----------
 # 注：brscan4 仅提供 amd64/i386 官方包
 # ARM 平台（NAS）如无法安装，扫描功能改用 SANE 通用后端
-ARG TARGETARCH=amd64
+ARG TARGETARCH
 RUN if [ "$TARGETARCH" = "amd64" ]; then \
       wget -q -O /tmp/brscan4.deb \
         "https://download.brother.com/welcome/dlf105200/brscan4-0.4.11-1.amd64.deb" \
       && dpkg -i /tmp/brscan4.deb \
       && rm /tmp/brscan4.deb; \
     else \
-      echo "⚠️  非 amd64 架构，跳过 brscan4 安装（使用通用 SANE 后端）"; \
+      echo "Non-amd64 arch, skipping brscan4"; \
     fi
 
 # ---------- CUPS 权限 ----------
