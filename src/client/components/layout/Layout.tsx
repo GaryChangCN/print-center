@@ -63,7 +63,7 @@ export function Layout({
 
       {/* 内容区 */}
       <main className="flex-1 overflow-y-auto pb-20 md:pb-4">
-        <div className="max-w-2xl mx-auto px-4 py-4">
+        <div className="max-w-2xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl mx-auto px-4 md:px-6 lg:px-8 py-4">
           {children}
         </div>
       </main>

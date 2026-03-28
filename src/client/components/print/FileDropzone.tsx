@@ -76,7 +76,7 @@ export function FileDropzone({
       {/* 拖拽上传区域 */}
       <div
         {...getRootProps()}
-        className={`card border-2 border-dashed cursor-pointer transition-colors text-center py-8
+        className={`card border-2 border-dashed cursor-pointer transition-colors text-center py-8 min-h-[200px] lg:min-h-[300px] flex flex-col items-center justify-center
           ${isDragActive ? 'border-accent bg-accent/5' : 'border-paper-300 hover:border-accent/50'}`}
       >
         <input {...getInputProps()} />

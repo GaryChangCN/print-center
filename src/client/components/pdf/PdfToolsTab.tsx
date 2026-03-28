@@ -218,7 +218,7 @@ export function PdfToolsTab() {
           <h3 className="font-semibold text-ink-700">
             {files[0].name} — {pageOrder.length} 页（拖拽排序）
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
             {pageOrder.map((pageIdx, i) => (
               <div
                 key={`${pageIdx}-${i}`}

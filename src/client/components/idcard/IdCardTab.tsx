@@ -110,7 +110,7 @@ export function IdCardTab() {
             <img
               src={getFileUrl(frontFileId)}
               alt="正面"
-              className="w-full max-h-48 object-contain rounded-lg border border-paper-200 bg-paper-50"
+              className="w-full max-h-48 lg:max-h-72 object-contain rounded-lg border border-paper-200 bg-paper-50"
             />
           </div>
           <div className="card text-center py-6 space-y-3 bg-amber-50 border-amber-200">
@@ -128,16 +128,16 @@ export function IdCardTab() {
       {/* Step 3: 两面都扫完，等待合成 */}
       {step === 'composing' && frontFileId && backFileId && (
         <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-3 lg:gap-6">
             <div className="card space-y-2">
               <p className="text-xs text-ink-400">正面</p>
               <img src={getFileUrl(frontFileId)} alt="正面"
-                className="w-full h-32 object-contain rounded border border-paper-200 bg-paper-50" />
+                className="w-full h-32 lg:h-48 object-contain rounded border border-paper-200 bg-paper-50" />
             </div>
             <div className="card space-y-2">
               <p className="text-xs text-ink-400">反面</p>
               <img src={getFileUrl(backFileId)} alt="反面"
-                className="w-full h-32 object-contain rounded border border-paper-200 bg-paper-50" />
+                className="w-full h-32 lg:h-48 object-contain rounded border border-paper-200 bg-paper-50" />
             </div>
           </div>
           <button className="btn-primary w-full" onClick={handleCompose} disabled={composing}>

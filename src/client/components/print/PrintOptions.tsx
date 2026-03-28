@@ -16,6 +16,7 @@ export function PrintOptions({
     <div className="card space-y-4">
       <h3 className="font-semibold text-ink-700">打印设置</h3>
 
+      <div className="lg:grid lg:grid-cols-2 lg:gap-4 space-y-4 lg:space-y-0">
       {/* 份数 */}
       <div>
         <label className="label">份数</label>
@@ -57,6 +58,9 @@ export function PrintOptions({
         </select>
       </div>
 
+      </div>
+
+      <div className="lg:grid lg:grid-cols-2 lg:gap-4 space-y-4 lg:space-y-0">
       {/* 方向 */}
       <div>
         <label className="label">方向</label>
@@ -117,6 +121,7 @@ export function PrintOptions({
             * 本打印机需手动翻转纸张实现双面打印
           </p>
         )}
+      </div>
       </div>
     </div>
   )

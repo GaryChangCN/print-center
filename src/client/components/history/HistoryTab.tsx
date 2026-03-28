@@ -113,6 +113,14 @@ export function HistoryTab() {
                   )}
                 </div>
               </div>
+              {/* 桌面端显示更多详情 */}
+              {type === 'print' && (
+                <div className="hidden md:flex items-center gap-3 text-xs text-ink-400 shrink-0">
+                  {item.paper_size && <span>{item.paper_size}</span>}
+                  {item.orientation && <span>{item.orientation === 'portrait' ? '纵向' : '横向'}</span>}
+                  {item.duplex && item.duplex !== 'off' && <span>双面</span>}
+                </div>
+              )}
               <div className="flex items-center gap-1 shrink-0">
                 {type === 'print' && (
                   <button

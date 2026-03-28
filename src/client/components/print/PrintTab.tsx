@@ -180,88 +180,96 @@ export function PrintTab() {
 
       <PrinterStatus />
 
-      <FileDropzone files={files} onFiles={setFiles} />
+      {files.length === 0 ? (
+        <FileDropzone files={files} onFiles={setFiles} />
+      ) : (
+        <div className="lg:grid lg:grid-cols-2 lg:gap-6">
+          {/* 左栏：文件上传 + 预览 */}
+          <div className="space-y-4">
+            <FileDropzone files={files} onFiles={setFiles} />
 
-      {files.length > 0 && (
-        <>
-          {previewFile?.type === 'application/pdf' && <PdfPreview file={previewFile} />}
-          {previewFile?.type.startsWith('image/') && (
-            <div className="card overflow-auto max-h-[60vh] bg-paper-100 rounded-lg flex justify-center p-2">
-              <img
-                src={URL.createObjectURL(previewFile)}
-                alt="预览"
-                className="max-w-full shadow-sm"
-              />
-            </div>
-          )}
-
-          <PrintOptions options={options} onChange={setOptions} />
-
-          <button
-            className="btn-primary w-full"
-            onClick={handlePrint}
-            disabled={loading}
-          >
-            <Send className="w-4 h-4" />
-            {loading
-              ? currentStage === 'uploading' ? '上传中...'
-              : currentStage === 'submitting' ? '提交中...'
-              : currentStage === 'printing' ? '打印中...'
-              : '处理中...'
-              : files.length > 1
-                ? `开始打印 (${files.length} 个文件)`
-                : '开始打印'}
-          </button>
-
-          {/* 总体进度条 */}
-          {loading && progress !== null && (
-            <div className="card space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-ink-600">总体进度</span>
-                <span className="text-ink-500 font-medium">{progress}%</span>
-              </div>
-              <div className="w-full h-2 bg-paper-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
+            {previewFile?.type === 'application/pdf' && <PdfPreview file={previewFile} />}
+            {previewFile?.type.startsWith('image/') && (
+              <div className="card overflow-auto max-h-[60vh] bg-paper-100 rounded-lg flex justify-center p-2">
+                <img
+                  src={URL.createObjectURL(previewFile)}
+                  alt="预览"
+                  className="max-w-full shadow-sm"
                 />
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* 每个文件的状态 */}
-          {fileStatuses.length > 0 && (
-            <div className="space-y-1">
-              {fileStatuses.map((fs, idx) => (
-                <div key={idx} className="card flex items-center gap-3 py-2 px-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-ink-700 truncate">{fs.fileName}</p>
-                  </div>
-                  <div className="shrink-0">
-                    {fs.stage === 'pending' && (
-                      <span className="text-xs text-ink-400">等待中</span>
-                    )}
-                    {fs.stage === 'uploading' && (
-                      <span className="text-xs text-blue-500">上传 {fs.uploadProgress}%</span>
-                    )}
-                    {fs.stage === 'submitting' && (
-                      <span className="text-xs text-blue-500">提交中</span>
-                    )}
-                    {fs.stage === 'printing' && fs.printStatus && (
-                      <StatusBadge status={fs.printStatus} />
-                    )}
-                    {fs.stage === 'completed' && (
-                      <StatusBadge status="completed" />
-                    )}
-                    {fs.stage === 'failed' && (
-                      <StatusBadge status="failed" />
-                    )}
-                  </div>
+          {/* 右栏：打印选项 + 按钮 */}
+          <div className="space-y-4 mt-4 lg:mt-0">
+            <PrintOptions options={options} onChange={setOptions} />
+
+            <button
+              className="btn-primary w-full"
+              onClick={handlePrint}
+              disabled={loading}
+            >
+              <Send className="w-4 h-4" />
+              {loading
+                ? currentStage === 'uploading' ? '上传中...'
+                : currentStage === 'submitting' ? '提交中...'
+                : currentStage === 'printing' ? '打印中...'
+                : '处理中...'
+                : files.length > 1
+                  ? `开始打印 (${files.length} 个文件)`
+                  : '开始打印'}
+            </button>
+
+            {/* 总体进度条 */}
+            {loading && progress !== null && (
+              <div className="card space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-ink-600">总体进度</span>
+                  <span className="text-ink-500 font-medium">{progress}%</span>
                 </div>
-              ))}
-            </div>
-          )}
-        </>
+                <div className="w-full h-2 bg-paper-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 每个文件的状态 */}
+            {fileStatuses.length > 0 && (
+              <div className="space-y-1">
+                {fileStatuses.map((fs, idx) => (
+                  <div key={idx} className="card flex items-center gap-3 py-2 px-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-ink-700 truncate">{fs.fileName}</p>
+                    </div>
+                    <div className="shrink-0">
+                      {fs.stage === 'pending' && (
+                        <span className="text-xs text-ink-400">等待中</span>
+                      )}
+                      {fs.stage === 'uploading' && (
+                        <span className="text-xs text-blue-500">上传 {fs.uploadProgress}%</span>
+                      )}
+                      {fs.stage === 'submitting' && (
+                        <span className="text-xs text-blue-500">提交中</span>
+                      )}
+                      {fs.stage === 'printing' && fs.printStatus && (
+                        <StatusBadge status={fs.printStatus} />
+                      )}
+                      {fs.stage === 'completed' && (
+                        <StatusBadge status="completed" />
+                      )}
+                      {fs.stage === 'failed' && (
+                        <StatusBadge status="failed" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )

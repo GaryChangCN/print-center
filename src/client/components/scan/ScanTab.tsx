@@ -139,7 +139,7 @@ export function ScanTab() {
       {/* 扫描设置 */}
       <div className="card space-y-3">
         <h3 className="font-semibold text-ink-700">扫描设置</h3>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           <div>
             <label className="label">分辨率</label>
             <select className="select" value={dpi} onChange={(e) => setDpi(Number(e.target.value))}>
@@ -188,7 +188,7 @@ export function ScanTab() {
           <img
             src={getFileUrl(lastScan.fileId) + `?t=${Date.now()}`}
             alt="扫描结果"
-            className="w-full rounded-lg border border-paper-200"
+            className="w-full lg:max-h-[70vh] object-contain rounded-lg border border-paper-200"
           />
           <div className="flex gap-2">
             <button
@@ -229,7 +229,7 @@ export function ScanTab() {
                 <img
                   src={getFileUrl(page.fileId)}
                   alt={`第 ${i + 1} 页`}
-                  className="w-12 h-16 object-cover rounded border border-paper-200"
+                  className="w-12 h-16 md:w-16 md:h-20 lg:w-20 lg:h-24 object-cover rounded border border-paper-200"
                 />
                 <span className="flex-1 text-sm text-ink-600">第 {i + 1} 页</span>
                 <button

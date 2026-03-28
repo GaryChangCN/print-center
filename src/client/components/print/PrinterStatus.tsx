@@ -216,9 +216,10 @@ export function PrinterStatus() {
       {/* 展开的详情 */}
       {showQueue && (
         <div className="border-t border-paper-200">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
           {/* 耗材信息 */}
           {printer.markers && printer.markers.length > 0 && (
-            <div className="px-4 py-3 space-y-2 border-b border-paper-100">
+            <div className="px-4 py-3 space-y-2 border-b border-paper-100 lg:border-b-0">
               {printer.markers.map((m, i) => (
                 <div key={i} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
@@ -243,7 +244,7 @@ export function PrinterStatus() {
           )}
 
           {/* 设备信息 */}
-          <div className="px-4 py-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-400 border-b border-paper-100">
+          <div className="px-4 py-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-400 border-b border-paper-100 lg:flex lg:flex-col lg:justify-center">
             {printer.mediaReady && printer.mediaReady.length > 0 && (
               <span>纸盒: {printer.mediaReady.map(formatMedia).join(', ')}</span>
             )}
@@ -253,6 +254,7 @@ export function PrinterStatus() {
             {printer.deviceUri && (
               <span>连接: {printer.deviceUri.startsWith('usb://') ? 'USB' : printer.deviceUri}</span>
             )}
+          </div>
           </div>
 
           {/* Tab 切换 */}
