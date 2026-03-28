@@ -34,6 +34,13 @@ getDb()
 // 启动自动清理
 startCleanupScheduler()
 
+// 版本信息
+app.get('/api/version', (c) => c.json({
+  version: process.env.APP_VERSION || 'dev',
+  arch: process.arch,
+  mockMode: config.mockMode,
+}))
+
 // API 路由
 app.route('/api/files', filesRoute)
 app.route('/api/status', statusRoute)

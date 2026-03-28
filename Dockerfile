@@ -108,6 +108,8 @@ RUN chmod +x /docker-entrypoint.sh
 EXPOSE 3000
 # EXPOSE 631  # 如需暴露 CUPS Web 界面可开启
 
+ARG GIT_SHA=dev
+ENV APP_VERSION=${GIT_SHA}
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV DATA_DIR=/app/data

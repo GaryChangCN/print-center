@@ -12,6 +12,15 @@ export function Layout({
   onTabChange: (tab: TabId) => void
   children: React.ReactNode
 }) {
+  const [version, setVersion] = useState('')
+
+  useEffect(() => {
+    fetch('/api/version').then(r => r.json()).then(d => {
+      const v = d.version || 'dev'
+      setVersion(v === 'dev' ? 'dev' : v.substring(0, 7))
+    }).catch(() => {})
+  }, [])
+
   const [dark, setDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('theme') === 'dark' ||
@@ -32,6 +41,11 @@ export function Layout({
         <div className="flex items-center gap-2">
           <span className="text-xl">🖨️</span>
           <h1 className="text-lg font-bold text-ink-800 dark:text-[#e8e4e0]">打印中心</h1>
+          {version && (
+            <span className="text-[10px] text-ink-400 bg-paper-100 dark:bg-[#333] px-1.5 py-0.5 rounded font-mono">
+              {version}
+            </span>
+          )}
         </div>
         <button
           onClick={() => setDark(d => !d)}
