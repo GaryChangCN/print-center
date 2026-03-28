@@ -37,6 +37,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # USB 工具
     usbutils \
     libusb-1.0-0 \
+    # LibreOffice (Office 文档转 PDF)
+    libreoffice-writer-nogui \
+    libreoffice-calc-nogui \
     # 工具
     wget \
     curl \

@@ -13,6 +13,8 @@ export interface PrintJobOptions {
   orientation?: string
   pageRange?: string
   duplex?: string
+  nup?: number
+  mimeType?: string
 }
 
 /** 通过 IPP 协议向远程 CUPS 提交打印任务 */
@@ -60,7 +62,7 @@ async function submitViaIPP(
     ).run(jobId)
 
     const fileBuffer = fs.readFileSync(filePath)
-    const mimeType = detectMimeType(filePath)
+    const mimeType = options.mimeType || detectMimeType(filePath)
     const printerUri = `${config.cupsServer}/printers/${config.printerName}`
 
     // 手动构建 IPP Print-Job 请求
@@ -167,6 +169,12 @@ function buildPrintJobRequest(
   // 方向: 3=portrait, 4=landscape
   if (options.orientation === 'landscape') {
     writeAttribute(parts, VALUE_ENUM, 'orientation-requested', enumVal(4))
+  }
+
+  // 合并打印 (N-up)
+  const nup = options.nup ?? 1
+  if (nup > 1) {
+    writeAttribute(parts, VALUE_INTEGER, 'number-up', intVal(nup))
   }
 
   // 结束标记

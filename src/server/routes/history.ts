@@ -1,6 +1,9 @@
 import { Hono } from 'hono'
+import { config } from '../env'
 import { getDb } from '../db'
-import { deleteFile } from '../services/file-store'
+import { deleteFile, getFileInfo } from '../services/file-store'
+import { mockSubmitPrint } from '../services/mock/mock-cups'
+import { submitPrintJob } from '../services/cups'
 
 const app = new Hono()
 
@@ -69,24 +72,35 @@ app.delete('/:id', (c) => {
 })
 
 // POST /api/history/reprint/:id — 重新打印
-app.post('/reprint/:id', (c) => {
+app.post('/reprint/:id', async (c) => {
   const id = c.req.param('id')
   const db = getDb()
 
   const job = db.prepare('SELECT * FROM print_jobs WHERE id = ?').get(id) as Record<string, unknown> | undefined
   if (!job) return c.json({ error: '打印记录不存在' }, 404)
 
-  // 创建新的打印任务（复用原文件）
-  const { mockSubmitPrint } = require('../services/mock/mock-cups')
-  const result = mockSubmitPrint(job.file_id as string, {
-    copies: job.copies as number,
-    paperSize: job.paper_size as string,
-    orientation: job.orientation as string,
-    pageRange: job.page_range as string,
-    duplex: job.duplex as string,
-  })
+  const fileId = job.file_id as string
+  if (!getFileInfo(fileId)) return c.json({ error: '原始文件已不存在' }, 404)
 
-  return c.json(result)
+  const printOptions = {
+    copies: (job.copies as number) || 1,
+    paperSize: (job.paper_size as string) || 'A4',
+    orientation: (job.orientation as string) || 'portrait',
+    pageRange: (job.page_range as string) || '',
+    duplex: (job.duplex as string) || 'off',
+  }
+
+  if (config.mockMode) {
+    const result = mockSubmitPrint(fileId, printOptions)
+    return c.json(result)
+  }
+
+  try {
+    const result = await submitPrintJob(fileId, printOptions)
+    return c.json(result)
+  } catch (err) {
+    return c.json({ error: err instanceof Error ? err.message : '重新打印失败' }, 500)
+  }
 })
 
 export default app

@@ -1,0 +1,12 @@
+{
+  "name": "打印中心",
+  "short_name": "打印中心",
+  "description": "家庭打印/扫描管理中心",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf8f5",
+  "theme_color": "#c45d3e",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

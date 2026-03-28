@@ -29,6 +29,12 @@ export const ORIENTATIONS = [
   { value: 'landscape', label: '横向' },
 ] as const
 
+export const NUP_OPTIONS = [
+  { value: 1, label: '单页' },
+  { value: 2, label: '2合1' },
+  { value: 4, label: '4合1' },
+] as const
+
 export const DUPLEX_OPTIONS = [
   { value: 'off', label: '单面' },
   { value: 'long-edge', label: '双面 (长边翻转)' },

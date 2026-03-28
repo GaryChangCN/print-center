@@ -6,6 +6,27 @@
   body {
     @apply bg-paper-50 text-ink-800 font-sans antialiased;
   }
+  .dark body,
+  body.dark {
+    @apply bg-[#1a1a1a] text-[#e8e4e0];
+  }
+  /* 深色模式下覆盖常用 ink/paper 文字色 */
+  .dark .text-ink-800 { color: #e8e4e0; }
+  .dark .text-ink-700 { color: #d0ccc6; }
+  .dark .text-ink-600 { color: #a0a0a0; }
+  .dark .text-ink-500 { color: #909090; }
+  .dark .text-ink-400 { color: #808080; }
+  /* 深色模式下覆盖常用背景 */
+  .dark .bg-paper-50 { background-color: #1a1a1a; }
+  .dark .bg-paper-100 { background-color: #222; }
+  .dark .bg-paper-200 { background-color: #333; }
+  .dark .bg-white { background-color: #2a2a2a; }
+  /* 深色模式下覆盖边框 */
+  .dark .border-paper-100 { border-color: #333; }
+  .dark .border-paper-200 { border-color: #404040; }
+  .dark .border-paper-300 { border-color: #555; }
+  /* 深色模式下覆盖虚线边框 */
+  .dark .border-dashed { border-color: #555; }
 }
 
 @layer components {
@@ -19,8 +40,14 @@
   .btn-secondary {
     @apply btn bg-paper-200 text-ink-700 hover:bg-paper-300;
   }
+  .dark .btn-secondary {
+    @apply bg-[#333] text-[#ccc] hover:bg-[#444];
+  }
   .btn-ghost {
     @apply btn text-ink-600 hover:bg-paper-200;
+  }
+  .dark .btn-ghost {
+    @apply text-[#aaa] hover:bg-[#333];
   }
   .btn-danger {
     @apply btn bg-red-500 text-white hover:bg-red-600;
@@ -28,8 +55,14 @@
   .btn-icon {
     @apply p-2.5 rounded-lg transition-colors hover:bg-paper-200 active:scale-95;
   }
+  .dark .btn-icon {
+    @apply hover:bg-[#333];
+  }
   .card {
     @apply bg-white rounded-xl shadow-sm border border-paper-200 p-4;
+  }
+  .dark .card {
+    @apply bg-[#2a2a2a] border-[#404040] shadow-none;
   }
   .input {
     @apply w-full px-3 py-2 rounded-lg border border-paper-300 bg-white
@@ -37,11 +70,19 @@
            focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent
            transition-colors;
   }
+  .dark .input {
+    @apply bg-[#333] border-[#555] text-[#e8e4e0];
+  }
   .select {
     @apply w-full px-3 py-2 rounded-lg border border-paper-300 bg-white
            text-ink-800 placeholder:text-ink-400
            focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent
            transition-colors appearance-none pr-10;
+  }
+  .dark .select {
+    @apply bg-[#333] border-[#555] text-[#e8e4e0];
+  }
+  .select {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23666' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
     background-position: right 0.75rem center;
     background-size: 1rem;
@@ -49,6 +90,9 @@
   }
   .label {
     @apply block text-sm font-medium text-ink-600 mb-1.5;
+  }
+  .dark .label {
+    @apply text-[#a0a0a0];
   }
 }
 

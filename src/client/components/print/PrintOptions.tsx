@@ -1,5 +1,5 @@
 import type { PrintOptions as PrintOptionsType } from '../../lib/types'
-import { PAPER_SIZES, ORIENTATIONS, DUPLEX_OPTIONS } from '../../lib/constants'
+import { PAPER_SIZES, ORIENTATIONS, DUPLEX_OPTIONS, NUP_OPTIONS } from '../../lib/constants'
 
 export function PrintOptions({
   options,
@@ -68,6 +68,22 @@ export function PrintOptions({
               onClick={() => update('orientation', o.value as PrintOptionsType['orientation'])}
             >
               {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 合并打印 */}
+      <div>
+        <label className="label">合并打印</label>
+        <div className="flex gap-2">
+          {NUP_OPTIONS.map((n) => (
+            <button
+              key={n.value}
+              className={`btn flex-1 ${options.nup === n.value ? 'bg-accent text-white' : 'bg-paper-100 text-ink-600'}`}
+              onClick={() => update('nup', n.value as PrintOptionsType['nup'])}
+            >
+              {n.label}
             </button>
           ))}
         </div>

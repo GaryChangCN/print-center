@@ -1,5 +1,5 @@
 export const config = {
-  port: Number(process.env.PORT || 3000),
+  port: Number(process.env.SERVER_PORT || process.env.PORT || 3000),
   cupsServer: process.env.CUPS_SERVER || 'http://localhost:631',
   printerName: process.env.PRINTER_NAME || 'Brother_DCP-1618W',
   dataDir: process.env.DATA_DIR || './data',

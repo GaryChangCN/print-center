@@ -5,6 +5,7 @@ export interface PrintOptions {
   orientation: 'portrait' | 'landscape'
   pageRange: string // '' = all, '1-3,5' = specific
   duplex: 'off' | 'long-edge' | 'short-edge'
+  nup: 1 | 2 | 4
 }
 
 export interface PrintJob {
