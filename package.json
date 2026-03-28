@@ -4,9 +4,10 @@
   "description": "Web-based print & scan management for CUPS printers on NAS",
   "private": true,
   "scripts": {
-    "dev:server": "tsx watch src/server/index.ts",
+    "dev:server": "MOCK_MODE=true tsx watch src/server/index.ts",
     "dev:client": "vite",
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client:nas": "API_TARGET=http://nas.h.com:3100 vite",
+    "dev": "MOCK_MODE=true concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build:client": "vite build",
     "build:server": "tsc -p tsconfig.server.json",
     "build": "npm run build:client && npm run build:server",

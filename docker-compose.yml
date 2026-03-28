@@ -1,6 +1,6 @@
 services:
   print-center:
-    image: ghcr.io/garychangcn/print-center:latest
+    image: ghcr.nju.edu.cn/garychangcn/print-center:latest
     container_name: print-center
     restart: unless-stopped
 

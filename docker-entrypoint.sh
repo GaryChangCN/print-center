@@ -1,29 +1,37 @@
 #!/bin/bash
 set -e
 
-echo "🚀 启动打印中心容器..."
+ARCH=$(uname -m)
+echo "=== Print Center starting (arch: $ARCH) ==="
 
-# ── 1. 启动 CUPS ────────────────────────────────────────────
+# ── 1. D-Bus (SANE 依赖) ─────────────────────────────────
+if [ -S /run/dbus/system_bus_socket ]; then
+  echo "[dbus] already running"
+else
+  mkdir -p /run/dbus
+  dbus-daemon --system --fork 2>/dev/null || true
+  echo "[dbus] started"
+fi
+
+# ── 2. 启动 CUPS ────────────────────────────────────────────
 # /etc/cups 已从宿主机挂载（复用旧配置），不覆写 cupsd.conf
-echo "⚙️  启动 CUPS（使用已有配置）..."
+echo "[cups] starting..."
 
 # 确保 cupsd.conf 允许本地应用访问（IPP 走 localhost:631）
-# 如果旧配置只监听 socket，补上 localhost 监听
 if ! grep -q "Listen.*631" /etc/cups/cupsd.conf 2>/dev/null; then
   echo "Listen localhost:631" >> /etc/cups/cupsd.conf
 fi
 
 service cups start
-echo "⏳ 等待 CUPS 启动..."
 sleep 3
 
-# ── 2. 确认打印机 ─────────────────────────────────────────
+# ── 3. 确认打印机 ─────────────────────────────────────────
 PRINTER_NAME="${PRINTER_NAME:-Brother_DCP-1618W}"
 
 if lpstat -a 2>/dev/null | grep -q "^${PRINTER_NAME}"; then
-  echo "✅ 打印机 ${PRINTER_NAME} 已就绪（来自旧配置）"
+  echo "[cups] printer ${PRINTER_NAME} ready"
 else
-  echo "⚠️  打印机 ${PRINTER_NAME} 不在 CUPS 中，尝试自动注册..."
+  echo "[cups] printer ${PRINTER_NAME} not found, auto-registering..."
 
   USB_URI=$(lpinfo -v 2>/dev/null | grep -i "brother\|usb" | head -1 | awk '{print $2}' || true)
   if [ -n "$USB_URI" ]; then
@@ -34,26 +42,46 @@ else
       lpadmin -p "$PRINTER_NAME" -E -v "$USB_URI" -o media=A4 2>/dev/null || true
     fi
     lpadmin -d "$PRINTER_NAME" 2>/dev/null || true
-    echo "   ✅ 打印机已注册"
+    echo "[cups] printer registered"
   else
-    echo "   ⚠️  未发现 USB 打印机"
+    echo "[cups] WARNING: no USB printer found"
   fi
 fi
 
-# ── 3. 注册扫描仪（brscan4）────────────────────────────────
-echo "🔍 检测扫描仪..."
-
-# brscan4 USB 扫描仪通常自动检测，这里做一次确认
-if command -v brsaneconfig4 &>/dev/null; then
-  # 检查是否已注册
-  if ! brsaneconfig4 -q 2>/dev/null | grep -qi "DCP"; then
-    brsaneconfig4 -a name=DCP-1618W model=DCP-1618W 2>/dev/null || true
-    echo "✅ 扫描仪已注册到 brscan4"
+# ── 4. 扫描仪 ───────────────────────────────────────────────
+if [ "$ARCH" = "x86_64" ]; then
+  # x86: 使用 brscan4 驱动
+  echo "[scan] x86_64 detected, configuring brscan4..."
+  if command -v brsaneconfig4 &>/dev/null; then
+    if ! brsaneconfig4 -q 2>/dev/null | grep -qi "DCP"; then
+      brsaneconfig4 -a name=DCP-1618W model=DCP-1618W 2>/dev/null || true
+      echo "[scan] scanner registered via brscan4"
+    else
+      echo "[scan] scanner already registered"
+    fi
   else
-    echo "✅ 扫描仪已存在"
+    echo "[scan] WARNING: brsaneconfig4 not found"
+  fi
+else
+  # ARM: brscan4 不可用，尝试 ipp-usb + sane-airscan
+  echo "[scan] ARM detected, brscan4 unavailable"
+  if command -v ipp-usb &>/dev/null; then
+    echo "[scan] starting ipp-usb..."
+    ipp-usb udev 2>/dev/null || true
+    sleep 2
+    # 检测扫描设备
+    SCANNER=$(scanimage -L 2>/dev/null | head -1 || true)
+    if [ -n "$SCANNER" ]; then
+      echo "[scan] scanner found: $SCANNER"
+    else
+      echo "[scan] WARNING: no scanner detected (DCP-1618W may not support eSCL)"
+      echo "[scan] scanning feature will be unavailable on ARM"
+    fi
+  else
+    echo "[scan] WARNING: ipp-usb not installed, scanning unavailable"
   fi
 fi
 
-# ── 4. 启动 Node.js 应用 ────────────────────────────────────
-echo "🌐 启动 Web 服务..."
+# ── 5. 启动 Node.js 应用 ────────────────────────────────────
+echo "[app] starting web server..."
 exec node /app/dist/server/index.js
